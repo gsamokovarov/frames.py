@@ -89,14 +89,11 @@ class Frame:
         current_frame = get_from(root_frame or Frame.current_frame(raw=True))
         current_frame = new(current_frame)
 
-        print hasattr(current_frame, 'Type')
-
         if not include_root:
             current_frame = new(current_frame.f_back)
 
         # The search will stop, because at some point the frame will be `None`.
         while current_frame:
-            print hasattr(current_frame, 'Type')
             found = callback(current_frame)
 
             if found:
