@@ -69,7 +69,7 @@ class Frame:
             `True` if the search should start from the `root_frame` or the one
             beneath it. Defaults to `False`.
         :param raw:
-            Wheter to use raw frames or wrap them in our own object. Defaults to
+            whether to use raw frames or wrap them in our own object. Defaults to
             `False`.
         :raises RuntimeError:
             When no matching frame is found.
