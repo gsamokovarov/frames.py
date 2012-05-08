@@ -32,7 +32,7 @@
 
   >>> frames.locate_frame(lambda f: 'BOOM' in f.locals).locals['BOOM'] = 'Yeah'
 
-  Heh?                 | This is getting boring, seriosly...
+  Heh?                 | This is getting boring ;(
 
   >>> BOOM
   'Yeah'
