@@ -83,7 +83,7 @@ class Frame:
 
             return maybe_callable
 
-        # Creates new frames, wether raw or not.
+        # Creates new frames, whether raw or not.
         new = lambda frame: frame if raw else Frame(frame)
 
         current_frame = get_from(root_frame or Frame.current_frame(raw=True))
