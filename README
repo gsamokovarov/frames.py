@@ -30,7 +30,9 @@
 
   Boom what?           | Meh...
 
-  >>> frames.locate_frame(lambda f: f.locals.get('__name__') == '__main__').locals['BOOM'] = 'Yeah'
+  >>> frames.locate_frame(
+  ...     lambda f: f.locals.get('__name__') == '__main__'
+  ... ).locals['BOOM'] = 'Yeah'
 
   Heh?                 | This is getting boring ;(
 
