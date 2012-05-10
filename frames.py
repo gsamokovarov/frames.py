@@ -116,8 +116,13 @@ class Frame:
         if not frame:
             return
 
+        # Read-only attributes goes below.
+
         #: Shortcut for `f_back`
         self.back = frame.f_back
+
+        #: Shortcut for `f_builtins`
+        self.builtins = frame.f_builtins
 
         #: Shortcut for `f_code`
         self.code = frame.f_code
@@ -125,18 +130,75 @@ class Frame:
         #: Shortcut for `f_globals`
         self.globals = frame.f_globals
 
+
+
         #: Shortcut for `f_locals`.
         self.locals = frame.f_locals
+
+        #: Shortcut for `f_restricted`.
+        self.restricted = frame.f_restricted
+
+    # Special dynamic/writable ones are properties.
+
+    @property
+    def exc_traceback(self):
+        '''
+        Shortcut for `f_exc_traceback`.
+
+        :returns: The frame exception traceback, if any.
+        '''
+
+        return self.frame.f_exc_traceback
+
+    @property
+    def exc_type(self):
+        '''
+        Shortcut for `f_exc_type`.
+
+        :returns: The frame exception class, if any.
+        '''
+
+        return self.frame.f_exc_type
+
+    @property
+    def exc_value(self):
+        '''
+        Shortcut for `f_exc_value`.
+
+        :returns: The frame exception instance, if any.
+        '''
+
+        return self.frame.f_exc_value
+
+    @property
+    def last_instruction(self):
+        '''
+        Shortcut for `f_lasti`
+
+        :returns: The last frame instruction.
+        '''
+
+        return self.frame.f_lasti
 
     @property
     def lineno(self):
         '''
-        Dynamic shortcut for `f_lineno`.
+        Shortcut for `f_lineno`.
 
         :returns: The line of the code at the current frame.
         '''
 
         return self.frame.f_lineno - 1
+
+    @property
+    def trace(self):
+        '''
+        Shortcut for `f_trace`.
+
+        :returns: The trace function, if any.
+        '''
+
+        return self.frame.f_trace
 
     @property
     def __class__(self):

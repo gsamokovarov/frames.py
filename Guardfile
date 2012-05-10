@@ -2,6 +2,6 @@
 # More info at https://github.com/guard/guard#readme
 
 guard 'shell' do
-  watch(/.*(\.py)$/) { `make test` }
+  watch(/.*(\.py)$/) { system 'make test' }
 end
 
