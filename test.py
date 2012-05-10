@@ -45,7 +45,9 @@ def have_special_shortcuts():
                 assert frame.exc_value is not None
                 assert frame.exc_traceback is not None
     except:
-        pass
+        assert frame.exc_type is None
+        assert frame.exc_value is None
+        assert frame.exc_traceback is None
 
 @frames.test
 def current_frame_is_really_the_current_frame():
