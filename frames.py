@@ -116,7 +116,7 @@ class Frame:
         if not frame:
             return
 
-        # Read-only attributes goes below.
+        # Read-only attributes go below.
 
         #: Shortcut for `f_back`
         self.back = frame.f_back
@@ -130,15 +130,13 @@ class Frame:
         #: Shortcut for `f_globals`
         self.globals = frame.f_globals
 
-
-
         #: Shortcut for `f_locals`.
         self.locals = frame.f_locals
 
         #: Shortcut for `f_restricted`.
         self.restricted = frame.f_restricted
 
-    # Special dynamic/writable ones are properties.
+    # Special attributes are defined as properties.
 
     @property
     def exc_traceback(self):
