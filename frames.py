@@ -9,6 +9,19 @@ import sys
 
 NATIVE = True if hasattr(sys, '_getframe') else False
 
+if not NATIVE:
+    try:
+        raise
+    except:
+        if (not hasattr(sys.exc_info()[2], 'tb_frame') or
+            not hasattr(sys.exc_info()[2].tb_frame, 'f_back')):
+            raise ImportError('Unable to capture frames. sys._getframe() is '
+                              'not supported in this Python implementation, '
+                              'and the traceback object does not conform to '
+                              'CPython specifications.')
+    finally:
+        sys.exc_clear()
+
 
 def _getframe(level=0):
     '''
@@ -28,16 +41,10 @@ def _getframe(level=0):
         raise
     except:
         # sys.exc_info() returns (type, value, traceback).
-        if not hasattr(sys.exc_info()[2], 'tb_frame'):
-            raise ImportError('Unable to capture frames. sys._getframe() is '
-                              'not supported in this Python implementation, '
-                              'and the traceback object does not conform to '
-                              'CPython specifications.')
-        else:
-            frame = sys.exc_info()[2].tb_frame
+        frame = sys.exc_info()[2].tb_frame
 
-            for i in xrange(0, level + 1): # + 1 to account for our exception.
-                frame = frame.f_back
+        for i in xrange(0, level + 1): # + 1 to account for our exception.
+            frame = frame.f_back
     finally:
         sys.exc_clear()
 
