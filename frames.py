@@ -7,33 +7,33 @@ __all__ = [
 import sys
 
 
-if not hasattr(sys, '_getframe'):
-    def _getframe(level=0):
-        '''
-        A reimplementation of `sys._getframe()`, which is a private function,
-        and isn't guaranteed to exist in all versions and implementations of
-        Python. This function is about 2x slower. `sys.exc_info()` only
-        returns helpful information if an exception has been raised.
+NATIVE = True if hasattr(sys, '_getframe') else False
 
-        :param level:
-            The number of levels deep in the stack to return the frame from.
-            Defaults to `0`.
-        :returns:
-            A frame object `levels` deep from the top of the stack.
-        '''
 
-        try:
-            raise
-        except:
-            # sys.exc_info() returns (type, value, traceback).
-            frame = sys.exc_info()[2].tb_frame
+def _getframe(level=0):
+    '''
+    A reimplementation of `sys._getframe()`, which is a private function,
+    and isn't guaranteed to exist in all versions and implementations of
+    Python. This function is about 2x slower. `sys.exc_info()` only
+    returns helpful information if an exception has been raised.
 
-            for i in xrange(0, level + 1): # + 1 to account for our exception.
-                frame = frame.f_back
+    :param level:
+        The number of levels deep in the stack to return the frame from.
+        Defaults to `0`.
+    :returns:
+        A frame object `levels` deep from the top of the stack.
+    '''
 
-            return frame
+    try:
+        raise
+    except:
+        # sys.exc_info() returns (type, value, traceback).
+        frame = sys.exc_info()[2].tb_frame
 
-    setattr(sys, '_getframe', _getframe)
+        for i in xrange(0, level + 1): # + 1 to account for our exception.
+            frame = frame.f_back
+
+        return frame
 
 
 # Make classes new-style by default.
@@ -64,13 +64,13 @@ class Frame:
 
         :returns: The current execution frame that is actually executing this.
         '''
-    
-        # `import sys` is important here, because the `sys` module is special 
-        # and we will end up with the class frame instead of the `current` one.
 
-        import sys
+        if NATIVE:
+            # `import sys` is important here, because the `sys` module is
+            # special and we will end up with the class frame instead of the
+            # `current` one.
 
-        frame = sys._getframe().f_back
+            frame = __import__('sys')._getframe().f_back if NATIVE else _getframe().f_back
 
         if not raw:
             frame = Frame(frame)
