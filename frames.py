@@ -28,12 +28,20 @@ def _getframe(level=0):
         raise
     except:
         # sys.exc_info() returns (type, value, traceback).
-        frame = sys.exc_info()[2].tb_frame
+        if not hasattr(sys.exc_info()[2], 'tb_frame'):
+            raise ImportError('Unable to capture frames. sys._getframe() is '
+                              'not supported in this Python implementation, '
+                              'and the traceback object does not conform to '
+                              'CPython specifications.')
+        else:
+            frame = sys.exc_info()[2].tb_frame
 
-        for i in xrange(0, level + 1): # + 1 to account for our exception.
-            frame = frame.f_back
+            for i in xrange(0, level + 1): # + 1 to account for our exception.
+                frame = frame.f_back
+    finally:
+        sys.exc_clear()
 
-        return frame
+    return frame
 
 
 # Make classes new-style by default.
