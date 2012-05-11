@@ -10,22 +10,23 @@ import sys
 if not hasattr(sys, '_getframe'):
     def _getframe(level=0):
         '''
-        A reimplementation of `sys._getframe()`. `level` is the number of levels
-        deep into the stack to grab the frame from (default: 0).
+        A reimplementation of `sys._getframe()`, which is a private function,
+        and isn't guaranteed to exist in all versions and implementations of
+        Python. This function is about 2x slower. `sys.exc_info()` only
+        returns helpful information if an exception has been raised.
 
-        `_getframe()` is a private function, and isn't guaranteed to exist in
-        all versions and implementations of Python. This function is about 2x
-        slower.
-
-        `sys.exc_info()` only returns helpful information if an exception has
-        been raised.
+        :param level:
+            The number of levels deep in the stack to return the frame from.
+            Defaults to `0`.
+        :returns:
+            A frame object `levels` deep from the top of the stack.
         '''
 
         try:
-            raise Exception
-
+            raise
         except:
-            frame = sys.exc_info()[2].tb_frame # sys.exc_info() returns (type, value, traceback).
+            # sys.exc_info() returns (type, value, traceback).
+            frame = sys.exc_info()[2].tb_frame
 
             for i in xrange(0, level + 1): # + 1 to account for our exception.
                 frame = frame.f_back
