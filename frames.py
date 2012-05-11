@@ -7,7 +7,7 @@ __all__ = [
 import sys
 
 
-NATIVE = True if hasattr(sys, '_getframe') else False
+NATIVE = hasattr(sys, '_getframe')
 
 if not NATIVE:
     try:
