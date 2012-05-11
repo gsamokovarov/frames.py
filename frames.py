@@ -8,9 +8,31 @@ import sys
 
 
 if not hasattr(sys, '_getframe'):
-    # _getframe may not be available on all of the Python distributions.
-    raise ImportError(
-        'sys._getframe is not supported on the current Python implementation.')
+    def _getframe(level=0):
+        '''
+        A reimplementation of `sys._getframe()`. `level` is the number of levels
+        deep into the stack to grab the frame from (default: 0).
+
+        `_getframe()` is a private function, and isn't guaranteed to exist in
+        all versions and implementations of Python. This function is about 2x
+        slower.
+
+        `sys.exc_info()` only returns helpful information if an exception has
+        been raised.
+        '''
+
+        try:
+            raise Exception
+
+        except:
+            frame = sys.exc_info()[2].tb_frame # sys.exc_info() returns (type, value, traceback).
+
+            for i in xrange(0, level + 1): # + 1 to account for our exception.
+                frame = frame.f_back
+
+            return frame
+
+    setattr(sys, '_getframe', _getframe)
 
 
 # Make classes new-style by default.
