@@ -13,42 +13,44 @@ if not NATIVE:
     try:
         raise
     except:
-        if (not hasattr(sys.exc_info()[2], 'tb_frame') or
-            not hasattr(sys.exc_info()[2].tb_frame, 'f_back')):
-            raise ImportError('Unable to capture frames. sys._getframe() is '
-                              'not supported in this Python implementation, '
-                              'and the traceback object does not conform to '
-                              'CPython specifications.')
+        traceback = sys.exc_info()[2]
+        
+        if (not hasattr(traceback, 'tb_frame') or
+            not hasattr(traceback.tb_frame, 'f_back')):
+            raise ImportError(
+                'Unable to capture frames. sys._getframe() is not supported in '
+                'this Python implementation, and the traceback object does not '
+                'conform to CPython specifications.')
     finally:
+        del traceback
         sys.exc_clear()
 
+    def _getframe(level=0):
+        '''
+        A reimplementation of `sys._getframe()`, which is a private function,
+        and isn't guaranteed to exist in all versions and implementations of
+        Python. This function is about 2x slower. `sys.exc_info()` only
+        returns helpful information if an exception has been raised.
 
-def _getframe(level=0):
-    '''
-    A reimplementation of `sys._getframe()`, which is a private function,
-    and isn't guaranteed to exist in all versions and implementations of
-    Python. This function is about 2x slower. `sys.exc_info()` only
-    returns helpful information if an exception has been raised.
+        :param level:
+            The number of levels deep in the stack to return the frame from.
+            Defaults to `0`.
+        :returns:
+            A frame object `levels` deep from the top of the stack.
+        '''
 
-    :param level:
-        The number of levels deep in the stack to return the frame from.
-        Defaults to `0`.
-    :returns:
-        A frame object `levels` deep from the top of the stack.
-    '''
+        try:
+            raise
+        except:
+            # sys.exc_info() returns (type, value, traceback).
+            frame = sys.exc_info()[2].tb_frame
 
-    try:
-        raise
-    except:
-        # sys.exc_info() returns (type, value, traceback).
-        frame = sys.exc_info()[2].tb_frame
+            for i in xrange(0, level + 1): # + 1 to account for our exception.
+                frame = frame.f_back
+        finally:
+            sys.exc_clear()
 
-        for i in xrange(0, level + 1): # + 1 to account for our exception.
-            frame = frame.f_back
-    finally:
-        sys.exc_clear()
-
-    return frame
+        return frame
 
 
 # Make classes new-style by default.
