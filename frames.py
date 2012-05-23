@@ -6,15 +6,12 @@ __all__ = [
 
 import sys
 
-
-NATIVE = hasattr(sys, '_getframe')
-
-if not NATIVE:
+if not hasattr(sys, '_getframe'):
     try:
         raise
     except:
         traceback = sys.exc_info()[2]
-        
+
         if (not hasattr(traceback, 'tb_frame') or
             not hasattr(traceback.tb_frame, 'f_back')):
             raise ImportError(
@@ -25,6 +22,30 @@ if not NATIVE:
         del traceback
         sys.exc_clear()
 
+# Make classes new-style by default.
+__metaclass__ = type
+
+
+class Frame:
+    '''
+    Wrapper object for the internal frames.
+    '''
+
+    NATIVE = hasattr(sys, '_getframe')
+
+    class Error(Exception):
+        '''
+        The base for everything frame related going wrong in the module.
+        '''
+
+    class NotFound(Error, LookupError):
+        '''
+        Raised when no frame is found.
+        '''
+
+    Type = sys._getframe().__class__
+
+    @staticmethod
     def _getframe(level=0):
         '''
         A reimplementation of `sys._getframe()`, which is a private function,
@@ -52,28 +73,6 @@ if not NATIVE:
 
         return frame
 
-
-# Make classes new-style by default.
-__metaclass__ = type
-
-
-class Frame:
-    '''
-    Wrapper object for the internal frames.
-    '''
-
-    class Error(Exception):
-        '''
-        The base for everything frame related going wrong in the module.
-        '''
-
-    class NotFound(Error, LookupError):
-        '''
-        Raised when no frame is found.
-        '''
-
-    Type = sys._getframe().__class__
-
     @staticmethod
     def current_frame(raw=False):
         '''
@@ -85,7 +84,7 @@ class Frame:
         # `import sys` is important here, because the `sys` module is special
         # and we will end up with the class frame instead of the `current` one.
 
-        frame = __import__('sys')._getframe().f_back if NATIVE else _getframe().f_back
+        frame = __import__('sys')._getframe().f_back if Frame.NATIVE else Frame._getframe().f_back
 
         if not raw:
             frame = Frame(frame)
