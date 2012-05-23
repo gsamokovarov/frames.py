@@ -6,7 +6,9 @@ __all__ = [
 
 import sys
 
-if not hasattr(sys, '_getframe'):
+NATIVE = hasattr(sys, '_getframe')
+
+if not NATIVE:
     try:
         raise
     except:
@@ -59,8 +61,6 @@ class Frame:
     Wrapper object for the internal frames.
     '''
 
-    NATIVE = hasattr(sys, '_getframe')
-
     class Error(Exception):
         '''
         The base for everything frame related going wrong in the module.
@@ -84,7 +84,7 @@ class Frame:
         # `import sys` is important here, because the `sys` module is special
         # and we will end up with the class frame instead of the `current` one.
 
-        frame = (__import__('sys')._getframe() if Frame.NATIVE else _getframe()).f_back
+        frame = (__import__('sys')._getframe() if NATIVE else _getframe()).f_back
 
         if not raw:
             frame = Frame(frame)

@@ -66,5 +66,5 @@ if __name__ == "__main__":
     suite.run()
 
     print "\nNon-Native Tests..."
-    frames.Frame.NATIVE = False
+    frames.NATIVE = False
     suite.run()
