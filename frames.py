@@ -84,7 +84,7 @@ class Frame:
         # `import sys` is important here, because the `sys` module is special
         # and we will end up with the class frame instead of the `current` one.
 
-        frame = __import__('sys')._getframe().f_back if Frame.NATIVE else Frame._getframe().f_back
+        frame = (__import__('sys')._getframe() if Frame.NATIVE else _getframe()).f_back
 
         if not raw:
             frame = Frame(frame)
