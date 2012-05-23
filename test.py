@@ -62,4 +62,9 @@ def raises_lookup_error_when_frames_are_not_found():
 
 
 if __name__ == "__main__":
+    print "Native Tests..."
+    suite.run()
+
+    print "\nNon-Native Tests..."
+    frames.Frame.NATIVE = False
     suite.run()
