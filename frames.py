@@ -22,6 +22,34 @@ if not hasattr(sys, '_getframe'):
         del traceback
         sys.exc_clear()
 
+def _getframe(level=0):
+    '''
+    A reimplementation of `sys._getframe()`, which is a private function,
+    and isn't guaranteed to exist in all versions and implementations of
+    Python. This function is about 2x slower. `sys.exc_info()` only
+    returns helpful information if an exception has been raised.
+
+    :param level:
+        The number of levels deep in the stack to return the frame from.
+        Defaults to `0`.
+    :returns:
+        A frame object `levels` deep from the top of the stack.
+    '''
+
+    try:
+        raise
+    except:
+        # sys.exc_info() returns (type, value, traceback).
+        frame = sys.exc_info()[2].tb_frame
+
+        for i in xrange(0, level + 1): # + 1 to account for our exception.
+            frame = frame.f_back
+    finally:
+        sys.exc_clear()
+
+    return frame
+
+
 # Make classes new-style by default.
 __metaclass__ = type
 
@@ -44,34 +72,6 @@ class Frame:
         '''
 
     Type = sys._getframe().__class__
-
-    @staticmethod
-    def _getframe(level=0):
-        '''
-        A reimplementation of `sys._getframe()`, which is a private function,
-        and isn't guaranteed to exist in all versions and implementations of
-        Python. This function is about 2x slower. `sys.exc_info()` only
-        returns helpful information if an exception has been raised.
-
-        :param level:
-            The number of levels deep in the stack to return the frame from.
-            Defaults to `0`.
-        :returns:
-            A frame object `levels` deep from the top of the stack.
-        '''
-
-        try:
-            raise
-        except:
-            # sys.exc_info() returns (type, value, traceback).
-            frame = sys.exc_info()[2].tb_frame
-
-            for i in xrange(0, level + 1): # + 1 to account for our exception.
-                frame = frame.f_back
-        finally:
-            sys.exc_clear()
-
-        return frame
 
     @staticmethod
     def current_frame(raw=False):
