@@ -1,35 +1,33 @@
+'''
+  __                                             
+ / _|_ __ __ _ _ __ ___   ___  ___   _ __  _   _ 
+| |_| '__/ _` | '_ ` _ \ / _ \/ __| | '_ \| | | |
+|  _| | | (_| | | | | | |  __/\__ \_| |_) | |_| |
+|_| |_|  \__,_|_| |_| |_|\___||___(_) .__/ \__, |
+                                  |_|       |__/ 
+'''
+
 __all__ = [
-    'FrameError', 'FrameNotFound', 'FrameType', 'Frame',
-    'current_frame', 'locate_frame'
+    'FrameNotFound', 'FrameType', 'Frame', 'current_frame', 'locate_frame'
 ]
 
 
 import sys
 
+
 NATIVE = hasattr(sys, '_getframe')
 
-if not NATIVE:
-    try:
-        raise
-    except:
-        traceback = sys.exc_info()[2]
-
-        if (not hasattr(traceback, 'tb_frame') or
-            not hasattr(traceback.tb_frame, 'f_back')):
-            raise ImportError(
-                'Unable to capture frames. sys._getframe() is not supported in '
-                'this Python implementation, and the traceback object does not '
-                'conform to CPython specifications.')
-    finally:
-        del traceback
-        sys.exc_clear()
 
 def _getframe(level=0):
     '''
-    A reimplementation of `sys._getframe()`, which is a private function,
-    and isn't guaranteed to exist in all versions and implementations of
-    Python. This function is about 2x slower. `sys.exc_info()` only
-    returns helpful information if an exception has been raised.
+    A reimplementation of `sys._getframe`.
+
+    `sys._getframe` is a private function, and isn't guaranteed to exist in all
+    versions and implementations of Python.
+
+    This function is about 2 times slower than the native implementation. It
+    relies on the asumption that the traceback objects have `tb_frame`
+    attributues holding proper frame objects.
 
     :param level:
         The number of levels deep in the stack to return the frame from.
@@ -38,16 +36,30 @@ def _getframe(level=0):
         A frame object `levels` deep from the top of the stack.
     '''
 
+    if level < 0:
+        level = 0
+
     try:
         raise
     except:
-        # sys.exc_info() returns (type, value, traceback).
-        frame = sys.exc_info()[2].tb_frame
+        # `sys.exc_info` returns `(type, value, traceback)`.
+        _, _, traceback = sys.exc_info()
+        frame = traceback.tb_frame
 
-        for i in xrange(0, level + 1): # + 1 to account for our exception.
+        # Account for our exception, this will stop at `-1`.
+        while ~level:
             frame = frame.f_back
+
+            if frame is None:
+                break
+
+            level -= 1
     finally:
         sys.exc_clear()
+
+    # Act as close to `sys._getframe` as possible.
+    if frame is None:
+        raise ValueError('call stack is not deep enough')
 
     return frame
 
@@ -61,12 +73,7 @@ class Frame:
     Wrapper object for the internal frames.
     '''
 
-    class Error(Exception):
-        '''
-        The base for everything frame related going wrong in the module.
-        '''
-
-    class NotFound(Error, LookupError):
+    class NotFound(LookupError):
         '''
         Raised when no frame is found.
         '''
@@ -78,13 +85,21 @@ class Frame:
         '''
         Gives the current execution frame.
 
-        :returns: The current execution frame that is actually executing this.
+        :returns:
+            The current execution frame that is actually executing this.
         '''
 
         # `import sys` is important here, because the `sys` module is special
         # and we will end up with the class frame instead of the `current` one.
 
-        frame = (__import__('sys')._getframe() if NATIVE else _getframe()).f_back
+        if NATIVE:
+            import sys
+
+            frame = sys._getframe()
+        else:
+            frame = _getframe()
+
+        frame = frame.f_back
 
         if not raw:
             frame = Frame(frame)
@@ -97,8 +112,8 @@ class Frame:
         Locates a frame by criteria.
 
         :param callback:
-            One argumented function to check the frame against. The frame we
-            are curretly on, is given as that argument.
+            One argument function to check the frame against. The frame we are
+            curretly on, is given as that argument.
         :param root_frame:
             The root frame to start the search from. Can be a callback taking
             no arguments.
@@ -129,7 +144,7 @@ class Frame:
         if not include_root:
             current_frame = new(current_frame.f_back)
 
-        # The search will stop, because at some point the frame will be `None`.
+        # The search will stop, because at some point the frame will be falsy.
         while current_frame:
             found = callback(current_frame)
 
@@ -180,7 +195,8 @@ class Frame:
         '''
         Shortcut for `f_exc_traceback`.
 
-        :returns: The frame exception traceback, if any.
+        :returns:
+            The frame exception traceback, if any.
         '''
 
         return self.frame.f_exc_traceback
@@ -190,7 +206,8 @@ class Frame:
         '''
         Shortcut for `f_exc_type`.
 
-        :returns: The frame exception class, if any.
+        :returns:
+            The frame exception class, if any.
         '''
 
         return self.frame.f_exc_type
@@ -200,7 +217,8 @@ class Frame:
         '''
         Shortcut for `f_exc_value`.
 
-        :returns: The frame exception instance, if any.
+        :returns:
+            The frame exception instance, if any.
         '''
 
         return self.frame.f_exc_value
@@ -210,7 +228,8 @@ class Frame:
         '''
         Shortcut for `f_lasti`
 
-        :returns: The last frame instruction.
+        :returns:
+            The last frame instruction.
         '''
 
         return self.frame.f_lasti
@@ -220,7 +239,8 @@ class Frame:
         '''
         Shortcut for `f_lineno`.
 
-        :returns: The line of the code at the current frame.
+        :returns:
+            The line of the code at the current frame.
         '''
 
         return self.frame.f_lineno - 1
@@ -230,7 +250,8 @@ class Frame:
         '''
         Shortcut for `f_trace`.
 
-        :returns: The trace function, if any.
+        :returns:
+            The trace function, if any.
         '''
 
         return self.frame.f_trace
@@ -256,7 +277,6 @@ class Frame:
 
 
 # More standard, non classy Python interface.
-FrameError = Frame.Error
 FrameNotFound = Frame.NotFound
 FrameType = Frame.Type
 locate_frame = Frame.locate

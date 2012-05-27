@@ -1,9 +1,20 @@
 import inspect
 import os
+from contextlib import contextmanager
 
 from attest import Tests, assert_hook, raises
 
 import frames
+
+
+@contextmanager
+def non_native_frames():
+    previous_native = frames.NATIVE
+    try:
+        frames.NATIVE = False
+        yield
+    finally:
+        frames.NATIVE = previous_native
 
 
 suite = Tests()
@@ -16,6 +27,11 @@ def is_new_style_class():
 @suite.test
 def is_a_frame():
     assert inspect.isframe(frames.current_frame())
+
+@suite.test
+def non_native_is_a_frame():
+    with non_native_frames():
+        is_a_frame()
 
 @suite.test
 def have_read_only_shortcuts():
@@ -60,11 +76,36 @@ def raises_lookup_error_when_frames_are_not_found():
     with raises(LookupError):
         frames.locate_frame(lambda f: os.urandom(24) in f.locals)
 
+# Some non-native alternatives for the current tests.
+
+@suite.test
+def non_native_have_read_only_shortcuts():
+    with non_native_frames():
+        have_read_only_shortcuts()
+
+@suite.test
+def non_native_have_read_only_shortcuts():
+    with non_native_frames():
+        have_read_only_shortcuts()
+
+@suite.test
+def non_native_current_frame_is_really_the_current_frame():
+    with non_native_frames():
+        current_frame_is_really_the_current_frame()
+
+@suite.test
+def non_native_behave_like_native_frames():
+    # Not the best scenario to test it since not all implementations actually
+    # support the `level` argument. But the ones that do, raise `ValueError`.
+
+    with raises(ValueError):
+        frames._getframe(999)
+
+    with raises(ValueError):
+        import sys
+
+        sys._getframe(999)
+
 
 if __name__ == "__main__":
-    print "Native Tests..."
-    suite.run()
-
-    print "\nNon-Native Tests..."
-    frames.NATIVE = False
     suite.run()
