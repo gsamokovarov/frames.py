@@ -12,3 +12,6 @@ watch:
 
 release:
 	@python setup.py register
+
+contributors:
+	@python scripts/contributors.py > CONTRIBUTORS
