@@ -2,7 +2,7 @@ clean:
 	@find -name '*.py?' -or -name '.*.sw?' | xargs rm -f
 
 test:
-	@py.test -v test.py
+	@tox
 
 lint:
 	@pylint -E frames.py
