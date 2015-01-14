@@ -2,3 +2,4 @@
 .*.sw?
 *.egg*
 env
+.tox
